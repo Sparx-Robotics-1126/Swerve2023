@@ -23,8 +23,6 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.Constants.GroundArmConstants;
-import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.PathConstants;
 import frc.robot.commands.PathPlanner.C1ThreePiece;
@@ -116,14 +114,6 @@ public class RobotContainer {
 
   }
 
-  
-
-  public void updateRobotForTeleop() {
-    // m_groundJoint.setDefaultCommand(
-    //   new RunCommand(() -> m_groundJoint.groundJointPosition(GroundArmConstants.kInPosition),
-    //                  m_groundJoint));
-  }
-
   /**
    * Use this method to define your button->command mappings. Buttons can be
    * created by
@@ -150,7 +140,7 @@ public class RobotContainer {
 
     // Main Intake Drop-off
     // Intake deadband to prevent accidental activation
-    m_driverController.rightTrigger(OIConstants.kIntakeReverseDeadband).whileTrue(new RunCommand(() -> 
+    m_driverController.rightTrigger().whileTrue(new RunCommand(() -> 
       m_driverController.getRightTriggerAxis()));
 
     // POV Rotation
