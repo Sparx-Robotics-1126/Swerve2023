@@ -30,28 +30,25 @@ public final class Constants {
 
   public static final class CANIDConstants {
     // SPARK MAX CAN IDs
-    public static final int kFrontLeftDrivingCanId = 11;
-    public static final int kRearLeftDrivingCanId = 13;
-    public static final int kFrontRightDrivingCanId = 15;
-    public static final int kRearRightDrivingCanId = 17;
+    public static final int kFrontLeftDrivingCanId = 10;
+    public static final int kRearLeftDrivingCanId = 40;
+    public static final int kFrontRightDrivingCanId = 20;
+    public static final int kRearRightDrivingCanId = 30;
     
-    public static final int kFrontLeftTurningCanId = 10;
-    public static final int kRearLeftTurningCanId = 12;
-    public static final int kFrontRightTurningCanId = 14;
-    public static final int kRearRightTurningCanId = 16;
+    public static final int kFrontLeftTurningCanId = 11;
+    public static final int kRearLeftTurningCanId = 41;
+    public static final int kFrontRightTurningCanId = 21;
+    public static final int kRearRightTurningCanId = 31;
 
-    public static final int kLeftArmCANId = 5; 
-    public static final int kRightArmCANId = 4;
-
-    public static final int kIntakeCANId = 3;
+    public static final int kFrontLeftCanCoderCanId = 12;
+    public static final int kRearLeftCanCoderCanId = 42;
+    public static final int kFrontRightCanCoderCanId = 22;
+    public static final int kRearRightCanCoderCanId = 32;
 
     //Power Distribution Hub (PDH) CAN ID
     public static final int kPdhCanId = 1;
 
-    //Ground Intake
-    public static final int kLeftGroundIntakeCANId = 6;
-    public static final int kRightGroundIntakeCANId = 7;
-    public static final int kGroundIntakeJointCANId = 8; 
+    public static final int kPigeon2ID = 4;
   }
 
   public static final class DriveConstants {

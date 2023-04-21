@@ -75,24 +75,6 @@ public class RobotContainer {
   public RobotContainer() {
     // The robot's subsystems
     m_robotDrive = new DriveSubsystem(m_driverController.rightBumper()); //Be careful when pressing this buttton while doing an auto command
-    // m_cameraUSB = CameraServer.startAutomaticCapture();
-
-  //   SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
-  //     m_robotDrive::getPose, // Pose2d supplier
-  //     m_robotDrive::resetPose, // Pose2d consumer, used to reset odometry at the beginning of auto
-  //     Constants.DriveConstants.kDriveKinematics., // SwerveDriveKinematics //TODO: fix SwerveDriveKinematics
-  //     new PIDConstants(5.0, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
-  //     new PIDConstants(0.5, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
-  //     m_robotDrive::setModuleStates, // Module states consumer used to output to the drive subsystem
-  //     Constants.AutoConstants.AUTO_EVENT_MAP,
-  //     true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
-  //     m_robotDrive // The drive subsystem. Used to properly set the requirements of path following commands
-  // );
-    
-    // m_groundIntake = new GroundIntakeSubsystem(); 
-    // m_LEDs.setDefaultCommand(new RunCommand(() -> m_LEDs.setColor(.6), m_LEDs));
-
-   
 
     // Configure the button bindings
     configureButtonBindings();
@@ -204,10 +186,6 @@ public class RobotContainer {
                 new RunCommand(() -> m_robotDrive.setLimelightLEDsOn()).withTimeout(0.1), 
                 new InstantCommand(() -> m_robotDrive.setVisionOriginaltx())))
               .handleInterrupt(() -> m_robotDrive.setLimelightLEDsOff()
-
-              // .handleInterrupt(() -> new SequentialCommandGroup(
-              //   new WaitCommand(VisionConstants.kLimelightOffDelay),
-              //   new InstantCommand(() -> m_robotDrive.setLimelightLEDsOff()))
       ));
 
       // Allign with Cone Node by Strafe
@@ -220,11 +198,6 @@ public class RobotContainer {
               Constants.DriveConstants.kDriveMaxOutput),
             m_robotDrive)
               .beforeStarting(new InstantCommand(() -> m_robotDrive.setLimelightLEDsOn()))
-              // .handleInterrupt(() -> m_robotDrive.setLimelightLEDsOff()
-
-              // .handleInterrupt(() -> new SequentialCommandGroup(
-              //   new WaitCommand(VisionConstants.kLimelightOffDelay),
-              //   new InstantCommand(() -> m_robotDrive.setLimelightLEDsOff()))
       );
 
 

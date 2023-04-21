@@ -5,22 +5,12 @@ import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
 
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.Constants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.PathConstants;
-// import frc.robot.commands.armCommands.ArmToPositionWithEnd;
 import frc.robot.commands.driveCommands.DriveToLevel;
-// import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.DriveSubsystem.DriveSubsystem;
-// import frc.robot.subsystems.GroundIntakeSubsystem.GroundIntake;
-// import frc.robot.subsystems.GroundIntakeSubsystem.GroundJoint;
-// import frc.robot.subsystems.MainIntakeSubsystem.ArmSubsystem;
-// import frc.robot.subsystems.MainIntakeSubsystem.IntakeSubsystem;
-// import frc.robot.subsystems.MainIntakeSubsystem.ArmSubsystem.armPositions;
 
 public class C1ThreePiece extends SequentialCommandGroup {
 
@@ -85,15 +75,7 @@ public class C1ThreePiece extends SequentialCommandGroup {
             driveSubsystem.followTrajectoryCommand(m_2ndPickUpPath, false),
             m_2ndPickUpPath.getMarkers(),
             AutoConstants.AUTO_EVENT_MAP),
-
         m_lastCommands
-
-        // new FollowPathWithEvents(
-        //     driveSubsystem.followTrajectoryCommand(m_lastPath, false),
-        //     m_lastPath.getMarkers(),
-        //     Constants.AutoConstants.AUTO_EVENT_MAP),
-        // new DriveToLevel(driveSubsystem)
-        //     .alongWith(new RunCommand(() -> LED.cycle()))
         );
     }
 }

@@ -4,7 +4,8 @@
 
 package frc.robot.subsystems.DriveSubsystem;
 
-import com.kauailabs.navx.frc.AHRS;
+import com.ctre.phoenixpro.configs.Pigeon2Configuration;
+import com.ctre.phoenixpro.hardware.Pigeon2;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
@@ -44,26 +45,30 @@ public class DriveSubsystem extends SubsystemBase {
   private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
       CANIDConstants.kFrontLeftDrivingCanId,
       CANIDConstants.kFrontLeftTurningCanId,
+      CANIDConstants.kFrontLeftCanCoderCanId,
       DriveConstants.kFrontLeftChassisAngularOffset);
 
   private final MAXSwerveModule m_frontRight = new MAXSwerveModule(
       CANIDConstants.kFrontRightDrivingCanId,
       CANIDConstants.kFrontRightTurningCanId,
+      CANIDConstants.kFrontRightCanCoderCanId,
       DriveConstants.kFrontRightChassisAngularOffset);
 
   private final MAXSwerveModule m_rearLeft = new MAXSwerveModule(
       CANIDConstants.kRearLeftDrivingCanId,
       CANIDConstants.kRearLeftTurningCanId,
+      CANIDConstants.kRearLeftCanCoderCanId,
       DriveConstants.kBackLeftChassisAngularOffset);
 
   private final MAXSwerveModule m_rearRight = new MAXSwerveModule(
       CANIDConstants.kRearRightDrivingCanId,
       CANIDConstants.kRearRightTurningCanId,
+      CANIDConstants.kRearRightCanCoderCanId,
       DriveConstants.kBackRightChassisAngularOffset);
 
   // The gyro sensor
   // private final ADIS16470_IMU m_gyro = new ADIS16470_IMU();
-  private final AHRS m_navX;
+  private final Pigeon2 m_pigeon;
 
   private Field2d m_field = new Field2d();
 
@@ -80,7 +85,9 @@ public class DriveSubsystem extends SubsystemBase {
   SwerveDriveOdometry m_odometry;
   private int count = 0;
   private int tvCount = 0;
-  private final PIDController m_rollPidController = new PIDController(0.0055, 0.00008, 0.0007); // 3/9 kp 0.005  2/15 kp 0.005 kd 0.001  1/21 ki:0.0055 kd: 0.0025
+  private final PIDController m_rollPidController = new PIDController(0.0055, 0.00008, 0.0007); // 3/9 kp 0.005 2/15 kp
+                                                                                                // 0.005 kd 0.001 1/21
+                                                                                                // ki:0.0055 kd: 0.0025
   private final PIDController m_rotPidController = new PIDController(0.01, 0.000, 0.000);
   private final PIDController m_rotVisionPidController = new PIDController(0.020, 0.0, 0.002);
   private final PIDController m_strafeVisionPidController = new PIDController(0.040, 0.0, 0.0);
@@ -99,17 +106,17 @@ public class DriveSubsystem extends SubsystemBase {
   private double m_kiR;
   private double m_kdR;
 
-  NetworkTable table; 
-  NetworkTableEntry tx; 
-  NetworkTableEntry ty; 
-  NetworkTableEntry ta; 
-  NetworkTableEntry tv; 
+  NetworkTable table;
+  NetworkTableEntry tx;
+  NetworkTableEntry ty;
+  NetworkTableEntry ta;
+  NetworkTableEntry tv;
 
-  double x = 0.0; 
-  double y = 0.0; 
-  double area = 0.0; 
-  double v = 0.0; 
-  double rotVisionSetpoint = 0.0; 
+  double x = 0.0;
+  double y = 0.0;
+  double area = 0.0;
+  double v = 0.0;
+  double rotVisionSetpoint = 0.0;
   double rotVisionPieceOffset = 0.0;
   double strafeVisionSetpoint = 0.0;
   double strafeVisionPieceOffset = 0.0;
@@ -121,36 +128,55 @@ public class DriveSubsystem extends SubsystemBase {
   double txPast = 0.0;
   double txDelta = 0.0;
   double rotSpeed = 0.0;
-  
+
   double txEstimated = 0.0;
 
   boolean txRejected = false;
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem(Trigger slowDriveButton) {
-    m_navX = new AHRS(SPI.Port.kMXP);
+    m_pigeon = new Pigeon2(CANIDConstants.kPigeon2ID);
+
+    initPigeon();
+
     m_odometry = new SwerveDriveOdometry(
-      DriveConstants.kDriveKinematics,
-      Rotation2d.fromDegrees(-m_navX.getAngle()),
-      new SwerveModulePosition[] {
-          m_frontLeft.getPosition(),
-          m_frontRight.getPosition(),
-          m_rearLeft.getPosition(),
-          m_rearRight.getPosition()
-      });
+        DriveConstants.kDriveKinematics,
+        Rotation2d.fromDegrees(-m_pigeon.getAngle()),
+        new SwerveModulePosition[] {
+            m_frontLeft.getPosition(),
+            m_frontRight.getPosition(),
+            m_rearLeft.getPosition(),
+            m_rearRight.getPosition()
+        });
     m_slowDriveButton = slowDriveButton;
     m_rotPidController.enableContinuousInput(-180, 180);
     zeroHeading();
     table = NetworkTableInstance.getDefault().getTable("limelight");
   }
 
+  private void initPigeon() {
+    // Factory default the Pigeon.
+    var toApply = new Pigeon2Configuration();
+    toApply.MountPose.MountPosePitch = 0;
+    toApply.MountPose.MountPoseYaw = -90;
+ 
+    m_pigeon.getConfigurator().apply(toApply);
+
+    m_pigeon.getPitch().setUpdateFrequency(1000);
+    m_pigeon.setYaw(0, .1);
+
+    m_pigeon.getYaw().setUpdateFrequency(100);
+    m_pigeon.getYaw().waitForUpdate(.1);
+
+  }
+
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
     SmartDashboard.putData(m_field);
-    SmartDashboard.putBoolean("Navx is calibrating: ", m_navX.isCalibrating());
+    // SmartDashboard.putBoolean("Navx is calibrating: ", m_pigeon.calibrate());
     m_odometry.update(
-        Rotation2d.fromDegrees(-m_navX.getAngle()),
+        Rotation2d.fromDegrees(-m_pigeon.getAngle()),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -158,12 +184,10 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
-        m_field.setRobotPose(m_odometry.getPoseMeters());
+    m_field.setRobotPose(m_odometry.getPoseMeters());
 
     SmartDashboard.putNumber("Heading", m_odometry.getPoseMeters().getRotation().getDegrees());
-    SmartDashboard.putNumber("CurrentPitch", m_navX.getRoll());
-    // SmartDashboard.putNumber("xTrajSP", xTrajPID.getSetpoint());
-    // SmartDashboard.putNumber("xTrajPosErr", xTrajPID.getPositionError());
+    SmartDashboard.putNumber("CurrentPitch", m_pigeon.getPitch().getValue());
 
     // Vision
     SmartDashboard.putNumber("txCurrent", table.getEntry("tx").getDouble(0.0));
@@ -188,7 +212,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetOdometry(Pose2d pose) {
     m_odometry.resetPosition(
-        Rotation2d.fromDegrees(-m_navX.getAngle()),
+        Rotation2d.fromDegrees(-m_pigeon.getAngle()),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -208,78 +232,87 @@ public class DriveSubsystem extends SubsystemBase {
    *                      field.
    * @param rateLimit     Whether to enable rate limiting for smoother control.
    */
-  
+
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
     drive(xSpeed, ySpeed, rot, fieldRelative, true, false, 1, false);
   }
+
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
     drive(xSpeed, ySpeed, rot, fieldRelative, rateLimit, true, 1, false);
   }
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit, boolean squaredInputs, double maxOutput) {
+
+  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit,
+      boolean squaredInputs, double maxOutput) {
     drive(xSpeed, ySpeed, rot, fieldRelative, rateLimit, squaredInputs, maxOutput, false);
   }
 
   // Main drive method
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit, boolean squaredInputs, double maxOutput, boolean rotException) {
-    
+  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit,
+      boolean squaredInputs, double maxOutput, boolean rotException) {
+
     double xSpeedCommanded;
     double ySpeedCommanded;
 
-    //Override max output when slowdrive button is pressed
-    if (m_slowDriveButton.getAsBoolean()) maxOutput = DriveConstants.kDriveSlow; 
+    // Override max output when slowdrive button is pressed
+    if (m_slowDriveButton.getAsBoolean())
+      maxOutput = DriveConstants.kDriveSlow;
 
     if (squaredInputs) {
-      xSpeed = Math.copySign(xSpeed*xSpeed, xSpeed);
-      ySpeed = Math.copySign(ySpeed*ySpeed, ySpeed);
-      if (!rotException) {rot = Math.copySign(rot*rot, rot);}
+      xSpeed = Math.copySign(xSpeed * xSpeed, xSpeed);
+      ySpeed = Math.copySign(ySpeed * ySpeed, ySpeed);
+      if (!rotException) {
+        rot = Math.copySign(rot * rot, rot);
+      }
     }
 
     xSpeed *= maxOutput;
     ySpeed *= maxOutput;
-    if (!rotException) {rot *= maxOutput;}
+    if (!rotException) {
+      rot *= maxOutput;
+    }
 
     if (rateLimit) {
       // Convert XY to polar for rate limiting
       double inputTranslationDir = Math.atan2(ySpeed, xSpeed);
       double inputTranslationMag = Math.sqrt(Math.pow(xSpeed, 2) + Math.pow(ySpeed, 2));
 
-      // Calculate the direction slew rate based on an estimate of the lateral acceleration
+      // Calculate the direction slew rate based on an estimate of the lateral
+      // acceleration
       double directionSlewRate;
       if (m_currentTranslationMag != 0.0) {
         directionSlewRate = Math.abs(DriveConstants.kDirectionSlewRate / m_currentTranslationMag);
       } else {
-        directionSlewRate = 500.0; //some high number that means the slew rate is effectively instantaneous
+        directionSlewRate = 500.0; // some high number that means the slew rate is effectively instantaneous
       }
-      
 
       double currentTime = WPIUtilJNI.now() * 1e-6;
       double elapsedTime = currentTime - m_prevTime;
       double angleDif = SwerveUtils.AngleDifference(inputTranslationDir, m_currentTranslationDir);
-      if (angleDif < 0.45*Math.PI) {
-        m_currentTranslationDir = SwerveUtils.StepTowardsCircular(m_currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
+      if (angleDif < 0.45 * Math.PI) {
+        m_currentTranslationDir = SwerveUtils.StepTowardsCircular(m_currentTranslationDir, inputTranslationDir,
+            directionSlewRate * elapsedTime);
         m_currentTranslationMag = m_magLimiter.calculate(inputTranslationMag);
-      }
-      else if (angleDif > 0.85*Math.PI) {
-        if (m_currentTranslationMag > 1e-4) { //some small number to avoid floating-point errors with equality checking
+      } else if (angleDif > 0.85 * Math.PI) {
+        if (m_currentTranslationMag > 1e-4) { // some small number to avoid floating-point errors with equality checking
           // keep currentTranslationDir unchanged
           m_currentTranslationMag = m_magLimiter.calculate(0.0);
-        }
-        else {
+        } else {
           m_currentTranslationDir = SwerveUtils.WrapAngle(m_currentTranslationDir + Math.PI);
           m_currentTranslationMag = m_magLimiter.calculate(inputTranslationMag);
         }
-      }
-      else {
-        m_currentTranslationDir = SwerveUtils.StepTowardsCircular(m_currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
+      } else {
+        m_currentTranslationDir = SwerveUtils.StepTowardsCircular(m_currentTranslationDir, inputTranslationDir,
+            directionSlewRate * elapsedTime);
         m_currentTranslationMag = m_magLimiter.calculate(0.0);
       }
       m_prevTime = currentTime;
-      
+
       xSpeedCommanded = m_currentTranslationMag * Math.cos(m_currentTranslationDir);
       ySpeedCommanded = m_currentTranslationMag * Math.sin(m_currentTranslationDir);
-      if (!rotException) m_currentRotation = m_rotLimiter.calculate(rot);
-      else m_currentRotation = rot;
-
+      if (!rotException)
+        m_currentRotation = m_rotLimiter.calculate(rot);
+      else
+        m_currentRotation = rot;
 
     } else {
       xSpeedCommanded = xSpeed;
@@ -294,7 +327,8 @@ public class DriveSubsystem extends SubsystemBase {
 
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
         fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, m_odometry.getPoseMeters().getRotation())
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
+                m_odometry.getPoseMeters().getRotation())
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -338,15 +372,10 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
-    resetOdometry(new Pose2d(getPose().getTranslation(),new Rotation2d()));
+    resetOdometry(new Pose2d(getPose().getTranslation(), new Rotation2d()));
     // m_navX.reset();
   }
-  //FYI: Don't use m_navX.calibrate(), the method does nothing
-  //Startup Cal takes 20s
 
-  public boolean isCalibrating(){
-    return m_navX.isCalibrating();
-  }
 
   /**
    * Returns the heading of the robot.
@@ -354,7 +383,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   // public double getHeading() {
-  //   return Rotation2d.fromDegrees(-m_navX.getAngle()).getDegrees();
+  // return Rotation2d.fromDegrees(-m_navX.getAngle()).getDegrees();
   // }
 
   /**
@@ -363,99 +392,138 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The turn rate of the robot, in degrees per second
    */
   public double getTurnRate() {
-    return m_navX.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+    return m_pigeon.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
 
-  //Charge Station Autos
-  public void driveToLevel(){
+  // Charge Station Autos
+  public void driveToLevel() {
     double pidOut = MathUtil.clamp(m_rollPidController.calculate(
-      m_navX.getRoll(), 0), -DriveConstants.kAutoLevelMaxOutput, DriveConstants.kAutoLevelMaxOutput);
+        m_pigeon.getAngle(), 0), -DriveConstants.kAutoLevelMaxOutput, DriveConstants.kAutoLevelMaxOutput);
     drive(pidOut, 0, 0, false);
 
-    if (++count %10 == 0) {
-        System.out.println("Roll is :" + m_navX.getRoll());
-        System.out.println("Pitch is :" + m_navX.getPitch());
-        System.out.println("PID Output is: " + pidOut);
+    if (++count % 10 == 0) {
+      System.out.println("Roll is :" + m_pigeon.getRoll());
+      System.out.println("Pitch is :" + m_pigeon.getPitch());
+      System.out.println("PID Output is: " + pidOut);
     }
 
-    SmartDashboard.putNumber("DrivePidOutput",pidOut);
+    SmartDashboard.putNumber("DrivePidOutput", pidOut);
   }
 
-  public boolean isLevel(){
-    return Math.abs(m_navX.getRoll()) < Constants.AutoConstants.kLevelTolerance;
+  public boolean isLevel() {
+    return Math.abs(m_pigeon.getAngle()) < Constants.AutoConstants.kLevelTolerance;
   }
 
-  public boolean driveToAngle (double targetAngle){ 
+  public boolean driveToAngle(double targetAngle) {
     boolean atAngle = true;
-    double currentAngle = m_navX.getRoll();
+    double currentAngle = m_pigeon.getAngle();
     // double currentAngle = m_odometry.;
-    if ( currentAngle >= targetAngle) {
-        drive(.25, 0, 0, false);  // xSpeed .4
-        atAngle = false;
-        if (++count %10 == 0) {
-          System.out.println("Angle is:" + currentAngle);
-        }
-    }
-    else {
-        drive(0, 0, 0, true);
+    if (currentAngle >= targetAngle) {
+      drive(.25, 0, 0, false); // xSpeed .4
+      atAngle = false;
+      if (++count % 10 == 0) {
+        System.out.println("Angle is:" + currentAngle);
+      }
+    } else {
+      drive(0, 0, 0, true);
     }
     return atAngle;
   }
-    
-    // Assuming this method is part of a drivetrain subsystem that provides the necessary methods
+
+  // Assuming this method is part of a drivetrain subsystem that provides the
+  // necessary methods
   public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
     return new SequentialCommandGroup(
         new InstantCommand(() -> {
           // Reset odometry for the first path you run during auto
-          if(isFirstPath){
-              PathPlannerTrajectory transformed = PathPlannerTrajectory.transformTrajectoryForAlliance(traj, DriverStation.getAlliance());
-              this.resetOdometry(transformed.getInitialHolonomicPose());
+          if (isFirstPath) {
+            PathPlannerTrajectory transformed = PathPlannerTrajectory.transformTrajectoryForAlliance(traj,
+                DriverStation.getAlliance());
+            this.resetOdometry(transformed.getInitialHolonomicPose());
           }
         }),
         new PPSwerveControllerCommand(
-            traj, 
+            traj,
             this::getPose, // Pose supplier
             Constants.DriveConstants.kDriveKinematics, // SwerveDriveKinematics
-            new PIDController(PathConstants.kpXdefault, PathConstants.kiXdefault, PathConstants.kdXdefault), // Forward/Backward X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
-            new PIDController(PathConstants.kpYdefault, PathConstants.kiYdefault, PathConstants.kdYdefault), // Strafe Y controller (usually the same values as X controller)
-            new PIDController(PathConstants.kpRdefault, PathConstants.kiRdefault, PathConstants.kdRdefault), // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+            new PIDController(PathConstants.kpXdefault, PathConstants.kiXdefault, PathConstants.kdXdefault), // Forward/Backward
+                                                                                                             // X
+                                                                                                             // controller.
+                                                                                                             // Tune
+                                                                                                             // these
+                                                                                                             // values
+                                                                                                             // for your
+                                                                                                             // robot.
+                                                                                                             // Leaving
+                                                                                                             // them 0
+                                                                                                             // will
+                                                                                                             // only use
+                                                                                                             // feedforwards.
+            new PIDController(PathConstants.kpYdefault, PathConstants.kiYdefault, PathConstants.kdYdefault), // Strafe Y
+                                                                                                             // controller
+                                                                                                             // (usually
+                                                                                                             // the same
+                                                                                                             // values
+                                                                                                             // as X
+                                                                                                             // controller)
+            new PIDController(PathConstants.kpRdefault, PathConstants.kiRdefault, PathConstants.kdRdefault), // Rotation
+                                                                                                             // controller.
+                                                                                                             // Tune
+                                                                                                             // these
+                                                                                                             // values
+                                                                                                             // for your
+                                                                                                             // robot.
+                                                                                                             // Leaving
+                                                                                                             // them 0
+                                                                                                             // will
+                                                                                                             // only use
+                                                                                                             // feedforwards.
             this::setModuleStates, // Module states consumer
-            true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+            true, // Should the path be automatically mirrored depending on alliance color.
+                  // Optional, defaults to true
             this // Requires this drive subsystem
 
-            //TODO: 1 inch undershot Forward/Backward. Increasing Xkp and Xki increases this error
-        )
-    );
+        // TODO: 1 inch undershot Forward/Backward. Increasing Xkp and Xki increases
+        // this error
+        ));
   }
 
   public void setTrajPID(
-    double kpX, double kiX, double kdX,
-    double kpY, double kiY, double kdY,
-    double kpR, double kiR, double kdR
-    ){
-    m_kpX = kpX;  m_kpY = kpY;  m_kpR = kpR;
-    m_kiX = kiX;  m_kiY = kiY;  m_kiR = kiR;
-    m_kdX = kdX;  m_kdY = kdY;  m_kdR = kdR;
+      double kpX, double kiX, double kdX,
+      double kpY, double kiY, double kdY,
+      double kpR, double kiR, double kdR) {
+    m_kpX = kpX;
+    m_kpY = kpY;
+    m_kpR = kpR;
+    m_kiX = kiX;
+    m_kiY = kiY;
+    m_kiR = kiR;
+    m_kdX = kdX;
+    m_kdY = kdY;
+    m_kdR = kdR;
   }
 
-  public void setXTrajPID(double kp, double ki, double kd){
+  public void setXTrajPID(double kp, double ki, double kd) {
     m_kpX = kp;
     m_kiX = ki;
     m_kdX = kd;
   }
-  public void setYTrajPID(double kp, double ki, double kd){
+
+  public void setYTrajPID(double kp, double ki, double kd) {
     m_kpY = kp;
     m_kiY = ki;
     m_kdY = kd;
   }
-  public void setRotTrajPID(double kp, double ki, double kd){
+
+  public void setRotTrajPID(double kp, double ki, double kd) {
     m_kpR = kp;
     m_kiR = ki;
     m_kdR = kd;
   }
+
   // Use if PID values are set manually (does not affect default values)
   public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath, boolean isModifiedPID) {
-    if (!isModifiedPID){
+    if (!isModifiedPID) {
       m_kpX = PathConstants.kpXdefault;
       m_kiX = PathConstants.kiXdefault;
       m_kdX = PathConstants.kdXdefault;
@@ -471,101 +539,111 @@ public class DriveSubsystem extends SubsystemBase {
     return new SequentialCommandGroup(
         new InstantCommand(() -> {
           // Reset odometry for the first path you run during auto
-          if(isFirstPath){
-              PathPlannerTrajectory transformed = PathPlannerTrajectory.transformTrajectoryForAlliance(traj, DriverStation.getAlliance());
-              this.resetOdometry(transformed.getInitialHolonomicPose());
+          if (isFirstPath) {
+            PathPlannerTrajectory transformed = PathPlannerTrajectory.transformTrajectoryForAlliance(traj,
+                DriverStation.getAlliance());
+            this.resetOdometry(transformed.getInitialHolonomicPose());
           }
         }),
         new PPSwerveControllerCommand(
-            traj, 
+            traj,
             this::getPose, // Pose supplier
             Constants.DriveConstants.kDriveKinematics, // SwerveDriveKinematics
-            new PIDController(m_kpX, m_kiX, m_kdX), // Forward/Backward X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+            new PIDController(m_kpX, m_kiX, m_kdX), // Forward/Backward X controller. Tune these values for your robot.
+                                                    // Leaving them 0 will only use feedforwards.
             new PIDController(m_kpY, m_kiY, m_kdY), // Strafe Y controller (usually the same values as X controller)
-            new PIDController(m_kpR, m_kiR, m_kdR), // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+            new PIDController(m_kpR, m_kiR, m_kdR), // Rotation controller. Tune these values for your robot. Leaving
+                                                    // them 0 will only use feedforwards.
             this::setModuleStates, // Module states consumer
-            true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+            true, // Should the path be automatically mirrored depending on alliance color.
+                  // Optional, defaults to true
             this // Requires this drive subsystem
-        )
-    );
+        ));
   }
 
   // TODO: use profiled pid if needed
-  public void TurnToTarget(double X, double Y, double angle, boolean rateLimit, boolean squaredInputs, double maxOutput){
-    // double pidOut = MathUtil.clamp(m_rotPidController.calculate(-m_navX.getAngle()%360, angle), -0.30, 0.30);
-    double pidOut = MathUtil.clamp(m_rotPidController.calculate(MathUtil.inputModulus(m_odometry.getPoseMeters().getRotation().getDegrees(), -180, 180), angle), -DriveConstants.kmaxPOVturnspeed, DriveConstants.kmaxPOVturnspeed);
-    drive(X, Y, pidOut, true, rateLimit, squaredInputs, maxOutput, true); // added rotExeption to keep the driver's SquaredInputs and MaxOutput seperate from PID rotation
+  public void TurnToTarget(double X, double Y, double angle, boolean rateLimit, boolean squaredInputs,
+      double maxOutput) {
+    // double pidOut =
+    // MathUtil.clamp(m_rotPidController.calculate(-m_navX.getAngle()%360, angle),
+    // -0.30, 0.30);
+    double pidOut = MathUtil.clamp(
+        m_rotPidController
+            .calculate(MathUtil.inputModulus(m_odometry.getPoseMeters().getRotation().getDegrees(), -180, 180), angle),
+        -DriveConstants.kmaxPOVturnspeed, DriveConstants.kmaxPOVturnspeed);
+    drive(X, Y, pidOut, true, rateLimit, squaredInputs, maxOutput, true); // added rotExeption to keep the driver's
+                                                                          // SquaredInputs and MaxOutput seperate from
+                                                                          // PID rotation
   }
 
-  public Command DriveCommand(double speed){
+  public Command DriveCommand(double speed) {
     return new StartEndCommand(
-      () -> drive(speed,0,0,false), 
-      () -> drive(0,0,0,false),
-      this);
+        () -> drive(speed, 0, 0, false),
+        () -> drive(0, 0, 0, false),
+        this);
   }
 
-  public void setLimelightLEDsOn(){
+  public void setLimelightLEDsOn() {
     NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
   }
 
-  public void setLimelightLEDsOff(){
+  public void setLimelightLEDsOff() {
     NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(1);
   }
 
-  public void setVisionOriginaltx(){
+  public void setVisionOriginaltx() {
     txPast = table.getEntry("tx").getDouble(0.0);
     txRejected = false;
   }
 
-  public double getVisionRotSpeed(){
-    if (table.getEntry("tv").getDouble(0.0) == 0.0){
-      if (++tvCount %10 == 0) {
+  public double getVisionRotSpeed() {
+    if (table.getEntry("tv").getDouble(0.0) == 0.0) {
+      if (++tvCount % 10 == 0) {
         txPast = 0.0;
       }
-    } else tvCount = 0; // When tv is 1
-    
+    } else
+      tvCount = 0; // When tv is 1
+
     // Addresses which target to prioritize using smartTargets
-    // double targetHalf = table.getEntry(VisionConstants.tLength).getDouble(0.0) / 2;
+    // double targetHalf = table.getEntry(VisionConstants.tLength).getDouble(0.0) /
+    // 2;
     // // rotVisionSetpoint = 0.0;
 
     // if (originaltx > 0){ // target center to the right (cam relative)
-    //   // // newtx = originaltx + targetHalf;
-    //   // rotVisionSetpoint = -targetHalf;
+    // // // newtx = originaltx + targetHalf;
+    // // rotVisionSetpoint = -targetHalf;
 
     // } else if (originaltx < 0){ // target center to the left (cam relative)
-    //   // // newtx = originaltx - targetHalf;
-    //   // rotVisionSetpoint = targetHalf;
+    // // // newtx = originaltx - targetHalf;
+    // // rotVisionSetpoint = targetHalf;
     // }
-
 
     // Addresses Target Switching using singleTarget
     txDelta = table.getEntry("tx").getDouble(0.0) - txPast;
-    if ((txDelta > VisionConstants.kDeltaThreshhold) || (txDelta < -VisionConstants.kDeltaThreshhold)){
+    if ((txDelta > VisionConstants.kDeltaThreshhold) || (txDelta < -VisionConstants.kDeltaThreshhold)) {
       if (txRejected = false) {
         txEstimated = txPast;
         txRejected = true;
       }
-      rotSpeed = MathUtil.clamp(m_rotVisionPidController.calculate(txEstimated, rotVisionSetpoint), 
-      -DriveConstants.maxVisionRotSpeed, DriveConstants.maxVisionRotSpeed);
-      txEstimated = txEstimated*0.9; // reduced 10% each loop
+      rotSpeed = MathUtil.clamp(m_rotVisionPidController.calculate(txEstimated, rotVisionSetpoint),
+          -DriveConstants.maxVisionRotSpeed, DriveConstants.maxVisionRotSpeed);
+      txEstimated = txEstimated * 0.9; // reduced 10% each loop
     } else {
-    txRejected = false;
-    rotSpeed = MathUtil.clamp(m_rotVisionPidController.calculate(table.getEntry("tx").getDouble(0.0), rotVisionSetpoint), 
-      -DriveConstants.maxVisionRotSpeed, DriveConstants.maxVisionRotSpeed);
+      txRejected = false;
+      rotSpeed = MathUtil.clamp(
+          m_rotVisionPidController.calculate(table.getEntry("tx").getDouble(0.0), rotVisionSetpoint),
+          -DriveConstants.maxVisionRotSpeed, DriveConstants.maxVisionRotSpeed);
       txPast = table.getEntry("tx").getDouble(0.0);
-      }
+    }
 
     return rotSpeed;
-    
+
   }
 
-  public double getVisionStrafeSpeed(){
-    // double heading = m_odometry.getPoseMeters().getRotation().getDegrees();
-    
-    // if (heading > DriveConstants.faceBackward - DriveConstants.kRobotHeadingTolerance 
-    //   && heading < -DriveConstants.faceBackward + DriveConstants.kRobotHeadingTolerance) {
-        return MathUtil.clamp(m_strafeVisionPidController.calculate(table.getEntry("tx").getDouble(0.0), strafeVisionSetpoint),
+  public double getVisionStrafeSpeed() {
+  
+    return MathUtil.clamp(
+        m_strafeVisionPidController.calculate(table.getEntry("tx").getDouble(0.0), strafeVisionSetpoint),
         -DriveConstants.maxVisionStrafeSpeed, DriveConstants.maxVisionStrafeSpeed);
-    // } else return 0;
   }
 }
