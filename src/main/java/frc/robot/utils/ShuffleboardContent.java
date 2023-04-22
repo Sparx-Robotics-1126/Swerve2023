@@ -10,8 +10,8 @@ import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import frc.robot.subsystems.DriveSubsystem.DriveSubsystem;
-import frc.robot.subsystems.DriveSubsystem.SwerveModuleBase;
+import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.SwerveModuleBase;
 
 
 

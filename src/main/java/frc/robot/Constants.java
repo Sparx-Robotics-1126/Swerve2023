@@ -98,7 +98,21 @@ public final class Constants {
     public static final int BACK_RIGHT_TURN_CHANNEL = 1;
 
   }
+
+  public static final class DriverConstants {
+
+    public static double kTranslationSlew = 10.0;
+    public static double kRotationSlew = 10.0;
+    public static double kControllerDeadband = .05;
+    public static double kControllerRotDeadband = .1;
+
+  }
+
   public static final class DriveConstants {
+    public static final double kMaxRotationRadiansPerSecond = Math.PI;
+
+    public static final double kMaxRotationRadiansPerSecondSquared = Math.PI;
+  
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
     public static final double kMaxSpeedMetersPerSecond = 4.46;
@@ -113,6 +127,10 @@ public final class Constants {
     // Distance between centers of right and left wheels on robot
     public static final double kWheelBase = Units.inchesToMeters(26.5);
     // Distance between front and back wheels on robot
+
+// v  public final static SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
+//   m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
+
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
         new Translation2d(kWheelBase / 2, kTrackWidth / 2),
         new Translation2d(kWheelBase / 2, -kTrackWidth / 2),
@@ -153,6 +171,19 @@ public final class Constants {
     public static final double faceBackward = 180;
     public static final double faceLeft = 90;
     public static final double faceRight = -90;
+
+    private final static Translation2d m_frontLeftLocation = new Translation2d(kWheelBase / 2, kTrackWidth / 2);
+    private final static Translation2d m_frontRightLocation = new Translation2d(kWheelBase / 2, -kTrackWidth / 2);
+    private final static Translation2d m_backLeftLocation = new Translation2d(-kWheelBase / 2, kTrackWidth / 2);
+    private final static Translation2d m_backRightLocation = new Translation2d(-kWheelBase / 2, -kTrackWidth / 2);
+
+
+    public static final Translation2d[] kModuleTranslations = {
+
+      m_frontLeftLocation,
+      m_frontRightLocation,
+      m_backLeftLocation,
+      m_backRightLocation };
   }
 
   public static final class ModuleConstants {

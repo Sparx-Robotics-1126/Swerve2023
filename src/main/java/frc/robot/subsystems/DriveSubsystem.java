@@ -2,10 +2,11 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.DriveSubsystem;
+package frc.robot.subsystems;
 
 import com.ctre.phoenix.unmanaged.Unmanaged;
-import com.kauailabs.navx.frc.AHRS;
+import com.ctre.phoenixpro.hardware.Pigeon2;
+// import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
@@ -96,7 +97,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   // The gyro sensor
 
-  private final AHRS m_gyro = new AHRS(SPI.Port.kMXP, (byte) 200);
+  private final Pigeon2 m_gyro = new Pigeon2(CANIDConstants.kPigeon2ID);
 
   /*
    * Here we use SwerveDrivePoseEstimator so that we can fuse odometry readings.
@@ -326,11 +327,11 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public void setAngleAdjustment(double adjustment) {
-    m_gyro.setAngleAdjustment(adjustment);
+    m_gyro.setYaw(adjustment);
   }
 
   public double getAngleAdjustment() {
-    return m_gyro.getAngleAdjustment();
+    return m_gyro.getAngle();
   }
 
   public double getHeadingDegrees() {
@@ -342,12 +343,12 @@ public class DriveSubsystem extends SubsystemBase {
     return Rotation2d.fromDegrees(getHeadingDegrees());
   }
 
-  public float getGyroPitch() {
-    return m_gyro.getPitch();
+  public double getGyroPitch() {
+    return m_gyro.getPitch().getValue();
   }
 
-  public float getGyroRoll() {
-    return m_gyro.getRoll();
+  public double getGyroRoll() {
+    return m_gyro.getRoll().getValue();
   }
 
   public boolean checkCANOK() {
