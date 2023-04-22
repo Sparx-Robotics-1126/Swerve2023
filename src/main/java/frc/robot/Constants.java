@@ -31,26 +31,73 @@ public final class Constants {
   public static final class CANIDConstants {
     // SPARK MAX CAN IDs
     public static final int kFrontLeftDrivingCanId = 10;
-    public static final int kRearLeftDrivingCanId = 40;
-    public static final int kFrontRightDrivingCanId = 20;
-    public static final int kRearRightDrivingCanId = 30;
-    
     public static final int kFrontLeftTurningCanId = 11;
-    public static final int kRearLeftTurningCanId = 41;
-    public static final int kFrontRightTurningCanId = 21;
-    public static final int kRearRightTurningCanId = 31;
-
     public static final int kFrontLeftCanCoderCanId = 12;
-    public static final int kRearLeftCanCoderCanId = 42;
-    public static final int kFrontRightCanCoderCanId = 22;
-    public static final int kRearRightCanCoderCanId = 32;
+    public static final double kFrontLeftTurningOffset = 231.5;
 
-    //Power Distribution Hub (PDH) CAN ID
+    public static final int kFrontRightDrivingCanId = 20;
+    public static final int kFrontRightTurningCanId = 21;
+    public static final int kFrontRightCanCoderCanId = 22;
+    public static final double kFrontRightTurningOffset  = 317;
+
+    public static final int kRearRightDrivingCanId = 30;
+    public static final int kRearRightTurningCanId = 31;
+    public static final int kRearRightCanCoderCanId = 32;
+    public static final double kRearRightTurningOffset  = 253.7;
+
+    public static final int kRearLeftDrivingCanId = 40;
+    public static final int kRearLeftTurningCanId = 41;
+    public static final int kRearLeftCanCoderCanId = 42;
+    public static final double kRearLeftTuriningOffsset  = 181.1;
+
+    // Power Distribution Hub (PDH) CAN ID
     public static final int kPdhCanId = 1;
 
     public static final int kPigeon2ID = 4;
   }
 
+  public class IDConstants {
+
+    public static final int FRONT_LEFT_LOCATION = 0;
+    public static final int FRONT_RIGHT_LOCATION = 1;
+    public static final int REAR_LEFT_LOCATION = 2;
+    public static final int REAR_RIGHT_LOCATION = 3;
+
+  }
+
+  public static final class PPConstants {
+    public static final double kMaxSpeedMetersPerSecond = DriveConstants.kMaxSpeedMetersPerSecond / 4;
+    public static final double kMaxAngularSpeedRadiansPerSecond = DriveConstants.kMaxAngularSpeed
+        / 10;
+    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
+
+    public static final double kPXController = 2;
+    public static final double kDXController = 0;
+    public static final double kIXController = 0;
+
+    public static final double kPYController = 2;
+    public static final double kDYController = 0;
+    public static final double kIYController = 0;
+
+    public static final double kPThetaController = 0.1;
+    public static final double kDThetaController = 0;
+    public static final double kIThetaController = 0;
+
+  }
+
+  public class PDPConstants {
+
+    public static final int FRONT_LEFT_DRIVE_CHANNEL = 1;
+    public static final int FRONT_RIGHT_DRIVE_CHANNEL = 1;
+    public static final int BACK_LEFT_DRIVE_CHANNEL = 1;
+    public static final int BACK_RIGHT_DRIVE_CHANNEL = 1;
+
+    public static final int FRONT_LEFT_TURN_CHANNEL = 1;
+    public static final int FRONT_RIGHT_TURN_CHANNEL = 1;
+    public static final int BACK_LEFT_TURN_CHANNEL = 1;
+    public static final int BACK_RIGHT_TURN_CHANNEL = 1;
+
+  }
   public static final class DriveConstants {
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
@@ -78,41 +125,56 @@ public final class Constants {
     public static final double kBackLeftChassisAngularOffset = Math.PI;
     public static final double kBackRightChassisAngularOffset = Math.PI / 2;
 
+    public static final boolean kFrontLeftTurningMotorReversed = true;
+    public static final boolean kBackLeftTurningMotorReversed = true;
+    public static final boolean kFrontRightTurningMotorReversed = true;
+    public static final boolean kBackRightTurningMotorReversed = true;
+
+    public static final boolean kFrontLeftDriveMotorReversed = false;
+    public static final boolean kBackLeftDriveMotorReversed = false;
+    public static final boolean kFrontRightDriveMotorReversed = true;
+    public static final boolean kBackRightDriveMotorReversed = true;
+
     public static final boolean kGyroReversed = false;
 
     // Drivetrain Speeds
-    public static final double kDriveMaxOutput = 0.95;  // Field: 0.85 | Arcadia: 0.40
-    public static final double kDriveSlow = 0.25; //0.25
-    public static final double kmaxPOVturnspeed = 1.0; //0.45
+    public static final double kDriveMaxOutput = 0.95; // Field: 0.85 | Arcadia: 0.40
+    public static final double kDriveSlow = 0.25; // 0.25
+    public static final double kmaxPOVturnspeed = 1.0; // 0.45
     public static final double kAutoLevelMaxOutput = 0.30;
     // Vision
     public static final double maxVisionRotSpeed = 0.4;
-    public static final double maxVisionStrafeSpeed = 1.0; // handled by maxOutput (TODO: Add xExeption param to drive(...))
+    public static final double maxVisionStrafeSpeed = 1.0; // handled by maxOutput (TODO: Add xExeption param to
+                                                           // drive(...))
     public static final double kRobotHeadingTolerance = 1.0; // in degrees
-
 
     // Cardinal Directions
     public static final double faceForward = 0;
     public static final double faceBackward = 180;
     public static final double faceLeft = 90;
-	  public static final double faceRight = -90;
+    public static final double faceRight = -90;
   }
 
   public static final class ModuleConstants {
-    // The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
-    // This changes the drive speed of the module (a pinion gear with more teeth will result in a
+    // The MAXSwerve module can be configured with one of three pinion gears: 12T,
+    // 13T, or 14T.
+    // This changes the drive speed of the module (a pinion gear with more teeth
+    // will result in a
     // robot that drives faster).
     public static final int kDrivingMotorPinionTeeth = 13;
 
-    // Invert the turning encoder, since the output shaft rotates in the opposite direction of
+    // Invert the turning encoder, since the output shaft rotates in the opposite
+    // direction of
     // the steering motor in the MAXSwerve Module.
     public static final boolean kTurningEncoderInverted = true;
 
     // Calculations required for driving motor conversion factors and feed forward
     public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60;
-    public static final double kWheelDiameterMeters = 0.0762;
+    // public static final double kWheelDiameterMeters = 0.0762;
+    public static final double kWheelDiameterMeters = Units.inchesToMeters(4);
     public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
-    // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15 teeth on the bevel pinion
+    // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15
+    // teeth on the bevel pinion
     public static final double kDrivingMotorReduction = (45.0 * 22) / (kDrivingMotorPinionTeeth * 15);
     public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters)
         / kDrivingMotorReduction;
@@ -147,12 +209,29 @@ public final class Constants {
 
     public static final int kDrivingMotorCurrentLimit = 50; // amps
     public static final int kTurningMotorCurrentLimit = 20; // amps
+
+    public static double kVoltCompensation = 12.6;
+
+    public static double mk4iL1DriveGearRatio = 1 / ((14.0 / 50.0) * (25.0 / 19.0) * (15.0 / 45.0));// 8.14 .122807
+
+    public static double mk4iL1TurnGearRatio = 1 / ((14.0 / 50.0) * (10.0 / 60.0));// 21.43 1/.046667
+
+    public static final double kDriveMetersPerEncRev =
+
+        (kWheelDiameterMeters * Math.PI) / mk4iL1DriveGearRatio;// 0.039198257811106
+
+    public static double kEncoderRevsPerMeter = 1 / kDriveMetersPerEncRev;// 25.511337897182322
+
+    public static final double kTurningDegreesPerEncRev =
+
+        360 / mk4iL1TurnGearRatio;
+
   }
 
   // Operator Input
   public static final class OIConstants {
     public static final int kDriverControllerPort = 0;
-    public static final int kManipulatorControllerPort = 1; 
+    public static final int kManipulatorControllerPort = 1;
     public static final int kTestControllerPort = 2;
     public static final double kDriveDeadband = 0.05;
     public static final double kJoystickDeadband = 0.05;
@@ -172,22 +251,22 @@ public final class Constants {
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
         kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
 
-    public static final double kLevelTolerance = 2.25;  //field tolerance is 2.25 degrees 
+    public static final double kLevelTolerance = 2.25; // field tolerance is 2.25 degrees
 
-    public static final double kDriveAngle = -11;  // Was 14.0
+    public static final double kDriveAngle = -11; // Was 14.0
 
     public static final HashMap<String, Command> AUTO_EVENT_MAP = new HashMap<>();
   }
 
-  public static final class PathConstants{
+  public static final class PathConstants {
     public static final double kpXdefault = 1.5;
     public static final double kiXdefault = 0.0;
     public static final double kdXdefault = 0.0;
-    
+
     public static final double kpYdefault = 3.0;
     public static final double kiYdefault = 0.0;
     public static final double kdYdefault = 0.0;
-    
+
     public static final double kpRdefault = 5.0;
     public static final double kiRdefault = 0.0;
     public static final double kdRdefault = 0.0;
@@ -198,7 +277,7 @@ public final class Constants {
 
   }
 
-  public static final class VisionConstants{
+  public static final class VisionConstants {
     public static final double kLimelightOffDelay = 3.0;
     public static final String tLength = "thor";
     public static final double kDeltaThreshhold = 4; // in degrees
@@ -207,5 +286,35 @@ public final class Constants {
   public static final class NeoMotorConstants {
     public static final double kFreeSpeedRpm = 5676;
   }
- 
+
+  public static final class CurrentLimitConstants {
+
+    public static final int turnMotorSmartLimit = 20;
+
+    public static final int driveMotorSmartLimit = 20;
+
+  }
+
+  public final static class ModuleTuneConstants {
+
+    public static final double kPModuleDriveController = .2;
+    public static final double kIModuleDriveController = 0;
+    public static final double kDModuleDriveController = 0;
+
+    public static final double kPModuleTurningController = .004;
+    public static final double kIModuleTurningController = 0;
+    public static final double kDModuleTurningController = 0;
+
+  }
+
+  public static final class SYSIDConstants {
+    // from Beta test
+    public static final double ksDriveVoltSecondsPerMeter = .0927;
+    public static final double kvDriveVoltSecondsSquaredPerMeter = 3.13;
+    public static final double kaDriveVoltSecondsSquaredPerMeter = 0.82;
+    // sysid on module?
+    public static final double kvTurnVoltSecondsPerRadian = 1.47; // originally 1.5
+    public static final double kaTurnVoltSecondsSquaredPerRadian = 0.348; // originally 0.3
+
+  }
 }
