@@ -1,274 +1,74 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.Constants.OIConstants;
-// import frc.robot.commands.Vision.ChaseTagCommandLimelight;
-// import frc.robot.commands.Vision.DriveToTape;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
-import frc.robot.commands.swerve.RotateToAngle;
-import frc.robot.commands.swerve.SetSwerveDrive;
-import frc.robot.commands.swerve.StrafeToSlot;
+// import frc.robot.autos.*;
+import frc.robot.commands.*;
+import frc.robot.subsystems.*;
 
-// import frc.robot.oi.CommandLeonardoController;
-// import frc.robot.oi.CommandPS3Controller;
-// import frc.robot.oi.ShuffleboardLLTag;
-import frc.robot.simulation.FieldSim;
-import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.GameHandlerSubsystem;
-import frc.robot.subsystems.DriveSubsystem.*;
-// import frc.robot.subsystems.GameHandlerSubsystem;
-// import frc.robot.subsystems.LimelightVision;
-import frc.robot.utils.AutoFactory;
-// import frc.robot.utils.LEDControllerI2C;
-import frc.robot.utils.PoseTelemetry;
-import frc.robot.utils.TrajectoryFactory;
-
+/**
+ * This class is where the bulk of the robot should be declared. Since Command-based is a
+ * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
+ * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
+ * subsystems, commands, and button mappings) should be declared here.
+ */
 public class RobotContainer {
-
-        // The robot's subsystems
-        final DriveSubsystem m_drive;
-
-
-        // final LimelightVision m_llv = new LimelightVision();
-
-        // private ShuffleboardLLTag sLLtag;
-
-        public AutoFactory m_autoFactory;
-
-        public TrajectoryFactory m_tf;
-
-        public GameHandlerSubsystem m_ghs;
-
-        // public LEDControllerI2C lcI2;
-
-        public final FieldSim m_fieldSim;
-
-        // The driver and codriver controllers
-
-        private CommandXboxController m_driverController = new CommandXboxController(
-                        OIConstants.kDriverControllerPort);
-
-        // private CommandPS3Controller m_coDriverController = new CommandPS3Controller(
-        //                 OIConstants.kCoDriverControllerPort);
-
-        // public CommandLeonardoController m_codriverBox = new CommandLeonardoController(5);
-
-        public PoseTelemetry pt = new PoseTelemetry();
-
-        final PowerDistribution m_pdp = new PowerDistribution();
-
-        // public LimelightVision m_llvis = new LimelightVision();
-
-
-        /**
-         * The container for the robot. Contains subsystems, OI devices, and commands.
-         */
-        public RobotContainer() {
-
-                Pref.deleteUnused();
-
-                Pref.addMissing();
-
-                m_drive = new DriveSubsystem();
-
-                m_drive.showOnShuffleboard = false;
-
-
-                SmartDashboard.putData("Scheduler", CommandScheduler.getInstance());
-
-                LiveWindow.disableAllTelemetry();
-
-                m_autoFactory = new AutoFactory(m_drive);
-
-                m_tf = new TrajectoryFactory(m_drive);
-
-                // m_ghs = new GameHandlerSubsystem();
-
-                m_fieldSim = new FieldSim(m_drive);
-
-        
-                // m_ls = new LightStrip(9, 60);
-
-                // lc = LEDController.getInstance();
-
-                // lcI2 = LEDControllerI2C.getInstance();
-
-                // sLLtag = new ShuffleboardLLTag(m_llv);
-
-                SmartDashboard.putData("Drive", m_drive);
-                // SmartDashboard.putData("TurnArm", m_turnArm);
-                // SmartDashboard.putData("Lin Arm", m_linArm);
-                // SmartDashboard.putData("Grippers", m_ghs);
-
-                // PortForwarder.add(5800, "10.21.94.11", 5800);
-                // PortForwarder.add(1181, "10.21.94.11", 1181);
-                // PortForwarder.add(1182, "10.21.94.11", 1182);
-                // PortForwarder.add(1183, "10.21.94,11", 1183);
-                // PortForwarder.add(1184, "10.21.94.11", 1184);
-
-                 CommandScheduler.getInstance()
-                                 .onCommandInitialize(command -> System.out.println(command.getName() + " is starting"));
-                 CommandScheduler.getInstance()
-                                 .onCommandFinish(command -> System.out.println(command.getName() + " has ended"));
-                 CommandScheduler.getInstance()
-                                 .onCommandInterrupt(
-                                                 command -> System.out.println(command.getName() + " was interrupted"));
-                 CommandScheduler.getInstance().onCommandInitialize(
-                                 command -> SmartDashboard.putString("CS", command.getName() + " is starting"));
-                 CommandScheduler.getInstance()
-                                 .onCommandFinish(command -> SmartDashboard.putString("CE",
-                                                 command.getName() + " has Ended"));
-                 CommandScheduler.getInstance().onCommandInterrupt(
-                                 command -> SmartDashboard.putString("CE", command.getName() + "was Interrupted"));
-
-                m_fieldSim.initSim();
-
-                setDefaultCommands();
-
-                configDriverButtons();
-
-                configCodriverButtons();
-
-                // configLeonardoBoxButtons();
-
-
-        }
-
-        private void setDefaultCommands() {
-
-                m_drive.setDefaultCommand(getDriveCommand());
-
-                // m_linArm.setDefaultCommand(new PositionHoldLinearArm(m_linArm));
-
-                // m_turnArm.setDefaultCommand(new PositionHoldTurnArm(m_turnArm));
-
-        }
-
-        void configDriverButtons() {
-
-                // m_driverController.x().whileTrue(getStrafeToTargetCommand());
-
-                m_driverController.povLeft().onTrue(new RotateToAngle(m_drive, 90));
-
-                m_driverController.povDown().onTrue(new InstantCommand(() -> m_ghs.setDropOffLevel(0)));
-
-                m_driverController.povRight().onTrue(new InstantCommand(() -> m_ghs.setDropOffLevel(1)));
-
-                m_driverController.povUp().onTrue(new InstantCommand(() -> m_ghs.setDropOffLevel(2)));
-
-                // m_driverController.a().onTrue(new InstantCommand(() -> m_ghs.setConeForPickup()))
-                //                 .onTrue(new InstantCommand(() -> m_llv.setLoadConePipeline()));
-
-                // m_driverController.b().onTrue(new InstantCommand(() -> m_ghs.setCubeForPickup()))
-                //                 .onTrue(new InstantCommand(() -> m_llv.setLoadCubePipeline()));
-
-                // m_driverController.leftTrigger().onTrue(getDriveToTapeCommand());
-
-                // m_driverController.R2()
-
-                // m_driverController.triangle()
-
-        }
-
-        void configDriverButtons(boolean bluelliance) {
-
-                int tag = 4;
-
-                if (!bluelliance)
-
-                        tag = 5;
-
-                // m_driverController.L1()
-                //                 .onTrue(new ChaseTagCommandLimelight(m_llvis, m_llv.cam_tag_15, tag, 1, 0, 0, m_drive,
-                //                                 () -> -m_driverController.getLeftX()));
-
-                // m_driverController.L2()
-                //                 .onTrue(new ChaseTagCommandLimelight(m_llvis, m_llv.cam_tag_15, tag, -1, 0, 0, m_drive,
-                //                                 () -> -m_driverController.getLeftX()));
-
-        }
-
-        private void configCodriverButtons() {
-
-                // m_coDriverController.R1()
-                //                 .onTrue(Commands.runOnce(() -> m_tf.setRun(true)));
-                // ;
-
-                // m_coDriverController.L1()
-                //                 .onTrue(getJogLinearArmCommand());
-
-                // m_coDriverController.R2()
-                                // .onTrue(getJogTurnArmCommand());
-
-        }
-
-        // private void configLeonardoBoxButtons() {
-
-        //         m_codriverBox.L1().onTrue(new InstantCommand(() -> m_linArm.setTestMode()))
-        //                         .onTrue(new InstantCommand(() -> m_turnArm.setTestMode()))
-        //                         .onTrue(new InstantCommand(() -> m_grp.setTestMode()));
-
-        // }
-
-        public Command getDriveCommand() {
-                return new SetSwerveDrive(m_drive,
-                                () -> m_driverController.getLeftY(),
-                                () -> m_driverController.getLeftX(),
-                                () -> m_driverController.getRightX(),
-                                m_driverController.leftStick());
-
-        }
-
-        // public Command getDriveToTapeCommand() {
-        //         return new DriveToTape(m_drive, m_llv,
-        //                         () -> m_driverController.getLeftY(),
-        //                         () -> m_driverController.getLeftX(),
-        //                         () -> m_driverController.getRightX());
-
-        // }
-
-        // public Command getStrafeToTargetCommand() {
-
-        //         return new StrafeToSlot(m_drive, m_ghs, m_llv, () -> m_driverController.getRawAxis(0))
-        //                         .andThen(() -> m_drive.stopModules());
-        // }
-
-        // public Command getJogTurnArmCommand() {
-
-        //         return new JogTurnArm(m_turnArm, () -> -m_coDriverController.getLeftY());
-        // }
-
-        // public Command getJogLinearArmCommand() {
-
-        //         return new JogLinearArm(m_linArm, () -> m_coDriverController.getLeftX());
-        // }
-
-        public Command getStopDriveCommand() {
-                return new InstantCommand(() -> m_drive.stopModules());
-        }
-
-        public Command setTargetGrid(int n) {
-                return new InstantCommand(() -> m_ghs.setActiveDropNumber(n));
-        }
-
-        public void simulationPeriodic() {
-
-                m_fieldSim.periodic();
-        }
-
-        public void periodic() {
-                m_fieldSim.periodic();
-
-        }
+    /* Controllers */
+    private final Joystick driver = new Joystick(0);
+
+    /* Drive Controls */
+    private final int translationAxis = XboxController.Axis.kLeftY.value;
+    private final int strafeAxis = XboxController.Axis.kLeftX.value;
+    private final int rotationAxis = XboxController.Axis.kRightX.value;
+
+    /* Driver Buttons */
+    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
+    private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+
+    /* Subsystems */
+    private final Swerve s_Swerve = new Swerve();
+
+
+    /** The container for the robot. Contains subsystems, OI devices, and commands. */
+    public RobotContainer() {
+        s_Swerve.setDefaultCommand(
+            new TeleopSwerve(
+                s_Swerve, 
+                () -> -driver.getRawAxis(translationAxis), 
+                () -> -driver.getRawAxis(strafeAxis), 
+                () -> -driver.getRawAxis(rotationAxis), 
+                () -> robotCentric.getAsBoolean()
+            )
+        );
+
+        // Configure the button bindings
+        configureButtonBindings();
+    }
+
+    /**
+     * Use this method to define your button->command mappings. Buttons can be created by
+     * instantiating a {@link GenericHID} or one of its subclasses ({@link
+     * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
+     * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
+     */
+    private void configureButtonBindings() {
+        /* Driver Buttons */
+        zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+    }
+
+    /**
+     * Use this to pass the autonomous command to the main {@link Robot} class.
+     *
+     * @return the command to run in autonomous
+     */
+    public Command getAutonomousCommand() {
+        // An ExampleCommand will run in autonomous
+        return null;
+        // return new exampleAuto(s_Swerve);
+    }
 }
