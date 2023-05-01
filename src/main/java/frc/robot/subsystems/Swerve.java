@@ -1,7 +1,7 @@
 package frc.robot.subsystems;
 
 import frc.robot.Constants;
-
+import frc.robot.Constants.CANIDConstants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -24,7 +24,7 @@ public class Swerve extends SubsystemBase {
     public Pigeon2 gyro;
 
     public Swerve() {
-        gyro = new Pigeon2(Constants.Swerve.pigeonID);
+        gyro = new Pigeon2(CANIDConstants.kPigeon2ID);
         configPigeon();
         mSwerveMods = new SwerveBase[] {
             new SwerveBase(0, Constants.Swerve.Mod0.constants),
@@ -81,7 +81,7 @@ private void configPigeon(){
      gyro.getPitch().setUpdateFrequency(1000);
      gyro.setYaw(0, .1);
 
-     gyro.getYaw().setUpdateFrequency(100);
+     gyro.getYaw().setUpdateFrequency(1000);
      gyro.getYaw().waitForUpdate(.1);
     zeroGyro();
 

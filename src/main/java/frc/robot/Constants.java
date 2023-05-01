@@ -4,16 +4,13 @@
 
 package frc.robot;
 
-import java.util.HashMap;
 
 import com.revrobotics.CANSparkMax.IdleMode;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.util.COTSNeoSwerveConstants;
 import frc.lib.util.SwerveModuleConstants;
 
@@ -53,66 +50,17 @@ public final class Constants {
     public static final int kRearLeftCanCoderCanId = 42;
     public static final double kRearLeftTuriningOffsset  = 181.1;
 
-    // Power Distribution Hub (PDH) CAN ID
-    public static final int kPdhCanId = 1;
-
     public static final int kPigeon2ID = 4;
-  }
-
-  public class IDConstants {
-
-    public static final int FRONT_LEFT_LOCATION = 0;
-    public static final int FRONT_RIGHT_LOCATION = 1;
-    public static final int REAR_LEFT_LOCATION = 2;
-    public static final int REAR_RIGHT_LOCATION = 3;
-
-  }
-
-  public static final class PPConstants {
-    public static final double kMaxSpeedMetersPerSecond = DriveConstants.kMaxSpeedMetersPerSecond / 4;
-    public static final double kMaxAngularSpeedRadiansPerSecond = DriveConstants.kMaxAngularSpeed
-        / 10;
-    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
-
-    public static final double kPXController = 2;
-    public static final double kDXController = 0;
-    public static final double kIXController = 0;
-
-    public static final double kPYController = 2;
-    public static final double kDYController = 0;
-    public static final double kIYController = 0;
-
-    public static final double kPThetaController = 0.1;
-    public static final double kDThetaController = 0;
-    public static final double kIThetaController = 0;
-
-  }
-
-  public class PDPConstants {
-
-    public static final int FRONT_LEFT_DRIVE_CHANNEL = 1;
-    public static final int FRONT_RIGHT_DRIVE_CHANNEL = 1;
-    public static final int BACK_LEFT_DRIVE_CHANNEL = 1;
-    public static final int BACK_RIGHT_DRIVE_CHANNEL = 1;
-
-    public static final int FRONT_LEFT_TURN_CHANNEL = 1;
-    public static final int FRONT_RIGHT_TURN_CHANNEL = 1;
-    public static final int BACK_LEFT_TURN_CHANNEL = 1;
-    public static final int BACK_RIGHT_TURN_CHANNEL = 1;
-
   }
 
   public static final class DriverConstants {
 
-    public static double kTranslationSlew = 10.0;
-    public static double kRotationSlew = 10.0;
-    public static double kControllerDeadband = .05;
-    public static double kControllerRotDeadband = .1;
     public static final double stickDeadband = 0.1;
 
   }
+  
   public static final class Swerve {
-    public static final int pigeonID = 4;
+    // public static final int pigeonID = 4;
     public static final boolean invertGyro = false; // Always ensure Gyro is CCW+ CW-
 
     public static final COTSNeoSwerveConstants chosenModule =  //TODO: This must be tuned to specific robot
@@ -228,9 +176,9 @@ public final class Constants {
     }
 }
   public static final class DriveConstants {
-    public static final double kMaxRotationRadiansPerSecond = Math.PI;
+    // public static final double kMaxRotationRadiansPerSecond = Math.PI;
 
-    public static final double kMaxRotationRadiansPerSecondSquared = Math.PI;
+    // public static final double kMaxRotationRadiansPerSecondSquared = Math.PI;
   
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
@@ -255,54 +203,6 @@ public final class Constants {
         new Translation2d(kWheelBase / 2, -kTrackWidth / 2),
         new Translation2d(-kWheelBase / 2, kTrackWidth / 2),
         new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
-
-    // Angular offsets of the modules relative to the chassis in radians
-    public static final double kFrontLeftChassisAngularOffset = -Math.PI / 2;
-    public static final double kFrontRightChassisAngularOffset = 0;
-    public static final double kBackLeftChassisAngularOffset = Math.PI;
-    public static final double kBackRightChassisAngularOffset = Math.PI / 2;
-
-    public static final boolean kFrontLeftTurningMotorReversed = true;
-    public static final boolean kBackLeftTurningMotorReversed = true;
-    public static final boolean kFrontRightTurningMotorReversed = true;
-    public static final boolean kBackRightTurningMotorReversed = true;
-
-    public static final boolean kFrontLeftDriveMotorReversed = false;
-    public static final boolean kBackLeftDriveMotorReversed = false;
-    public static final boolean kFrontRightDriveMotorReversed = true;
-    public static final boolean kBackRightDriveMotorReversed = true;
-
-    public static final boolean kGyroReversed = false;
-
-    // Drivetrain Speeds
-    public static final double kDriveMaxOutput = 0.95; // Field: 0.85 | Arcadia: 0.40
-    public static final double kDriveSlow = 0.25; // 0.25
-    public static final double kmaxPOVturnspeed = 1.0; // 0.45
-    public static final double kAutoLevelMaxOutput = 0.30;
-    // Vision
-    public static final double maxVisionRotSpeed = 0.4;
-    public static final double maxVisionStrafeSpeed = 1.0; // handled by maxOutput (TODO: Add xExeption param to
-                                                           // drive(...))
-    public static final double kRobotHeadingTolerance = 1.0; // in degrees
-
-    // Cardinal Directions
-    public static final double faceForward = 0;
-    public static final double faceBackward = 180;
-    public static final double faceLeft = 90;
-    public static final double faceRight = -90;
-
-    private final static Translation2d m_frontLeftLocation = new Translation2d(kWheelBase / 2, kTrackWidth / 2);
-    private final static Translation2d m_frontRightLocation = new Translation2d(kWheelBase / 2, -kTrackWidth / 2);
-    private final static Translation2d m_backLeftLocation = new Translation2d(-kWheelBase / 2, kTrackWidth / 2);
-    private final static Translation2d m_backRightLocation = new Translation2d(-kWheelBase / 2, -kTrackWidth / 2);
-
-
-    public static final Translation2d[] kModuleTranslations = {
-
-      m_frontLeftLocation,
-      m_frontRightLocation,
-      m_backLeftLocation,
-      m_backRightLocation };
   }
 
   public static final class ModuleConstants {
@@ -340,20 +240,6 @@ public final class Constants {
     public static final double kTurningEncoderPositionPIDMinInput = 0; // radians
     public static final double kTurningEncoderPositionPIDMaxInput = kTurningEncoderPositionFactor; // radians
 
-    public static final double kDrivingP = 0.04;
-    public static final double kDrivingI = 0;
-    public static final double kDrivingD = 0;
-    public static final double kDrivingFF = 1 / kDriveWheelFreeSpeedRps;
-    public static final double kDrivingMinOutput = -1;
-    public static final double kDrivingMaxOutput = 1;
-
-    public static final double kTurningP = 1;
-    public static final double kTurningI = 0;
-    public static final double kTurningD = 0;
-    public static final double kTurningFF = 0;
-    public static final double kTurningMinOutput = -1;
-    public static final double kTurningMaxOutput = 1;
-
     public static final IdleMode kDrivingMotorIdleMode = IdleMode.kBrake;
     public static final IdleMode kTurningMotorIdleMode = IdleMode.kBrake;
 
@@ -378,54 +264,8 @@ public final class Constants {
 
   }
 
-  // Operator Input
-  public static final class OIConstants {
-    public static final int kDriverControllerPort = 0;
-    public static final int kManipulatorControllerPort = 1;
-    public static final int kTestControllerPort = 2;
-    public static final double kDriveDeadband = 0.05;
-    public static final double kJoystickDeadband = 0.05;
-  }
 
-  public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 3;
-    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
-    public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
-    public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
-
-    public static final double kPXController = 1;
-    public static final double kPYController = 1;
-    public static final double kPThetaController = 1;
-
-    // Constraint for the motion profiled robot angle controller
-    public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
-        kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
-
-    public static final double kLevelTolerance = 2.25; // field tolerance is 2.25 degrees
-
-    public static final double kDriveAngle = -11; // Was 14.0
-
-    public static final HashMap<String, Command> AUTO_EVENT_MAP = new HashMap<>();
-  }
-
-  public static final class PathConstants {
-    public static final double kpXdefault = 1.5;
-    public static final double kiXdefault = 0.0;
-    public static final double kdXdefault = 0.0;
-
-    public static final double kpYdefault = 3.0;
-    public static final double kiYdefault = 0.0;
-    public static final double kdYdefault = 0.0;
-
-    public static final double kpRdefault = 5.0;
-    public static final double kiRdefault = 0.0;
-    public static final double kdRdefault = 0.0;
-
-    public static final int LVL = 0;
-    public static final int NoLVL = 1;
-    public static final int grabCube = 2;
-
-  }
+ 
 
   public static final class VisionConstants {
     public static final double kLimelightOffDelay = 3.0;
